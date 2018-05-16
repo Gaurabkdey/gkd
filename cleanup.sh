@@ -12,3 +12,4 @@ rm buildandjoinchannel.sh
 rm *_install.sh
 rm *_update.sh
 
+echo "Cleanup done"
