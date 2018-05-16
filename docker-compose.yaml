@@ -1,0 +1,143 @@
+version: "2"
+networks:
+  fabricnetwork: {}
+services:
+  cli:
+    image: hyperledger/fabric-tools:${IMAGE_TAG}
+    container_name: cli
+    tty: true
+    environment:
+    - CORE_PEER_TLS_ENABLED=true
+    - GOPATH=/opt/gopath
+    - CORE_LOGGING_LEVEL=DEBUG
+    - CORE_PEER_ID=cli
+    working_dir: /opt/ws
+    volumes:
+    - /var/run/:/host/var/run/
+    - ./:/opt/ws
+    - ./chaincode/github.com:/opt/gopath/src/github.com
+    depends_on:
+    - orderer.orderernet
+    - peer0.sellernet
+    - peer0.transnet
+    - peer0.buyernet
+    networks:
+    - fabricnetwork
+  couch0:
+    container_name: couch0
+    extends:
+      file: base.yaml
+      service: couchdb
+    ports:
+    - 5984:5984
+    networks:
+    - fabricnetwork
+  couch1:
+    container_name: couch1
+    extends:
+      file: base.yaml
+      service: couchdb
+    ports:
+    - 6984:5984
+    networks:
+    - fabricnetwork
+  couch2:
+    container_name: couch2
+    extends:
+      file: base.yaml
+      service: couchdb
+    ports:
+    - 7984:5984
+    networks:
+    - fabricnetwork
+  orderer.orderernet:
+    container_name: orderer.orderernet
+    extends:
+      file: base.yaml
+      service: orderer
+    volumes:
+    - ./genesis.block:/var/hyperledger/orderer/genesis.block
+    - ./crypto-config/ordererOrganizations/orderernet/orderers/orderer.orderernet/msp:/var/hyperledger/orderer/msp
+    - ./crypto-config/ordererOrganizations/orderernet/orderers/orderer.orderernet/tls/:/var/hyperledger/orderer/tls
+    ports:
+    - 7050:7050
+    networks:
+    - fabricnetwork
+  peer0.buyernet:
+    container_name: peer0.buyernet
+    extends:
+      file: base.yaml
+      service: peer
+    environment:
+    - CORE_PEER_ID=peer0.buyernet
+    - CORE_PEER_ADDRESS=peer0.buyernet:7051
+    - CORE_PEER_CHAINCODELISTENADDRESS=peer0.buyernet:7052
+    - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.buyernet:7051
+    - CORE_PEER_LOCALMSPID=BuyerMSP
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couch2:5984
+    - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.buyernet:7051
+    volumes:
+    - /var/run/:/host/var/run/
+    - ./crypto-config/peerOrganizations/buyernet/peers/peer0.buyernet/msp:/etc/hyperledger/fabric/msp
+    - ./crypto-config/peerOrganizations/buyernet/peers/peer0.buyernet/tls:/etc/hyperledger/fabric/tls
+    ports:
+    - 9051:7051
+    - 9053:7053
+    depends_on:
+    - couch2
+    - orderer.orderernet
+    networks:
+    - fabricnetwork
+  peer0.sellernet:
+    container_name: peer0.sellernet
+    extends:
+      file: base.yaml
+      service: peer
+    environment:
+    - CORE_PEER_ID=peer0.sellernet
+    - CORE_PEER_ADDRESS=peer0.sellernet:7051
+    - CORE_PEER_CHAINCODELISTENADDRESS=peer0.sellernet:7052
+    - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.sellernet:7051
+    - CORE_PEER_LOCALMSPID=SellerMSP
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couch0:5984
+    - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.sellernet:7051
+    volumes:
+    - /var/run/:/host/var/run/
+    - ./crypto-config/peerOrganizations/sellernet/peers/peer0.sellernet/msp:/etc/hyperledger/fabric/msp
+    - ./crypto-config/peerOrganizations/sellernet/peers/peer0.sellernet/tls:/etc/hyperledger/fabric/tls
+    ports:
+    - 7051:7051
+    - 7053:7053
+    depends_on:
+    - couch0
+    - orderer.orderernet
+    networks:
+    - fabricnetwork
+  peer0.transnet:
+    container_name: peer0.transnet
+    extends:
+      file: base.yaml
+      service: peer
+    environment:
+    - CORE_PEER_ID=peer0.transnet
+    - CORE_PEER_ADDRESS=peer0.transnet:7051
+    - CORE_PEER_CHAINCODELISTENADDRESS=peer0.transnet:7052
+    - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.transnet:7051
+    - CORE_PEER_LOCALMSPID=TransporterMSP
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couch1:5984
+    - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.transnet:7051
+    volumes:
+    - /var/run/:/host/var/run/
+    - ./crypto-config/peerOrganizations/transnet/peers/peer0.transnet/msp:/etc/hyperledger/fabric/msp
+    - ./crypto-config/peerOrganizations/transnet/peers/peer0.transnet/tls:/etc/hyperledger/fabric/tls
+    ports:
+    - 8051:7051
+    - 8053:7053
+    depends_on:
+    - couch1
+    - orderer.orderernet
+    networks:
+    - fabricnetwork

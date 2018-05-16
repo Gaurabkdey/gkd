@@ -1,0 +1,38 @@
+{
+    "orderers":{
+        "name" :"Orderer","mspID":"OrdererMSP","domain":"orderernet","ordererHostname":"orderer","SANS":"localhost","type":"solo"
+    },
+    "addCA":"false",
+    "orgs":[
+        { 
+            "name" :"Seller",
+            "domain":"sellernet",
+            "mspID":"SellerMSP",
+            "SANS":"localhost",
+            "peerCount":1,
+            "userCount":2
+        },
+        { 
+            "name" :"Transporter",
+            "domain":"transnet",
+            "mspID":"TransporterMSP",
+            "SANS":"localhost",
+            "peerCount":1,
+            "userCount":2
+        },
+        { 
+            "name" :"Buyer",
+            "domain":"buyernet",
+            "mspID":"BuyerMSP",
+            "SANS":"localhost",
+            "peerCount":1,
+            "userCount":2
+        }
+        ],
+    "consortium":"SupplyChainConsortium",
+    "channels" :[
+                    {"channelName":"scm","orgs":["Transporter","Buyer","Seller"] }
+                ],
+    "chaincodes":[{"channelName":"scm","ccid":"scm","version":"1.0","src":"github.com/scm","participants":["Transporter","Buyer","Seller"]}]            
+                
+}

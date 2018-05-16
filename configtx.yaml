@@ -1,0 +1,75 @@
+
+Profiles:
+
+    OrdererGenesis:
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+        Consortiums:
+          SupplyChainConsortium:
+             Organizations:
+                - *SellerOrg
+                - *TransporterOrg
+                - *BuyerOrg
+                
+    
+    
+    scmChannel:
+        Consortium: SupplyChainConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *TransporterOrg
+                - *BuyerOrg
+                - *SellerOrg
+                
+     
+Organizations:
+    - &OrdererOrg
+        Name: OrdererMSP
+        ID: OrdererMSP
+        MSPDir: crypto-config/ordererOrganizations/orderernet/msp
+    
+    - &SellerOrg
+        Name: SellerMSP
+        ID: SellerMSP
+        MSPDir: crypto-config/peerOrganizations/sellernet/msp
+        AnchorPeers:
+          - Host: peer0.sellernet
+            Port: 7051
+        
+    - &TransporterOrg
+        Name: TransporterMSP
+        ID: TransporterMSP
+        MSPDir: crypto-config/peerOrganizations/transnet/msp
+        AnchorPeers:
+          - Host: peer0.transnet
+            Port: 7051
+        
+    - &BuyerOrg
+        Name: BuyerMSP
+        ID: BuyerMSP
+        MSPDir: crypto-config/peerOrganizations/buyernet/msp
+        AnchorPeers:
+          - Host: peer0.buyernet
+            Port: 7051
+        
+
+Orderer: &OrdererDefaults
+        OrdererType: solo
+        Addresses:
+          - orderer.orderernet:7050
+        BatchTimeout: 2s
+        BatchSize:
+          MaxMessageCount: 10
+          AbsoluteMaxBytes: 98 MB
+          PreferredMaxBytes: 512 KB
+        Kafka:
+          Brokers:
+            - 127.0.0.1:9092
+        Organizations:
+
+    
+Application: &ApplicationDefaults
+    Organizations:
